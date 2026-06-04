@@ -13,7 +13,7 @@ export default function handler(req, res) {
     return res.status(500).json({ error: 'Missing Twilio credentials' });
   }
 
-  const identity = `user_${Math.floor(Math.random() * 10000)}`;
+  const identity = 'webier_admin';
 
   const voiceGrant = new VoiceGrant({
     outgoingApplicationSid: twilioTwimlAppSid,

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Device, Call } from "@twilio/voice-sdk";
-import { Phone, PhoneOff, Mic, MicOff, Delete, Volume2, Settings } from "lucide-react";
+import { Phone, PhoneOff, Mic, MicOff, Delete, Volume2, Settings, ClipboardCopy, CheckCircle2 } from "lucide-react";
 
 export default function Dialer() {
   const [device, setDevice] = useState(null);
@@ -11,12 +11,40 @@ export default function Dialer() {
   const [errorMsg, setErrorMsg] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   
+  const [callDuration, setCallDuration] = useState(0);
+  const [recentCalls, setRecentCalls] = useState([]);
+  const [activeTab, setActiveTab] = useState("dialpad");
+  const [notes, setNotes] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [incomingConnection, setIncomingConnection] = useState(null);
+  const timerRef = useRef(null);
+  
   const [inputDevices, setInputDevices] = useState([]);
   const [outputDevices, setOutputDevices] = useState([]);
   const [selectedInput, setSelectedInput] = useState("");
   const [selectedOutput, setSelectedOutput] = useState("");
 
   const initStarted = useRef(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("recentCalls");
+    if (saved) {
+      try {
+        setRecentCalls(JSON.parse(saved));
+      } catch (e) {
+        console.error("Could not parse recent calls");
+      }
+    }
+  }, []);
+
+  const addRecentCall = (num, type = "outbound") => {
+    setRecentCalls(prev => {
+      const newCall = { num, type, time: new Date().toISOString() };
+      const updated = [newCall, ...prev.filter(c => c.num !== num)].slice(0, 10);
+      localStorage.setItem("recentCalls", JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   useEffect(() => {
     if (initStarted.current) return;
@@ -49,6 +77,35 @@ export default function Dialer() {
           setErrorMsg("");
         });
 
+        newDevice.on("incoming", (connection) => {
+          console.log("Incoming connection from", connection.parameters.From);
+          setIncomingConnection(connection);
+          setStatus("incoming");
+          setPhoneNumber(connection.parameters.From || "Unknown Caller");
+          setActiveTab("dialpad");
+          
+          connection.on("accept", () => {
+             setStatus("in-call");
+             setIncomingConnection(null);
+             addRecentCall(connection.parameters.From || "Unknown Caller", "inbound");
+          });
+          
+          connection.on("disconnect", () => {
+             setStatus("ready");
+             setIncomingConnection(null);
+          });
+          
+          connection.on("cancel", () => {
+             setStatus("ready");
+             setIncomingConnection(null);
+          });
+          
+          connection.on("reject", () => {
+             setStatus("ready");
+             setIncomingConnection(null);
+          });
+        });
+
         newDevice.on("error", (error) => {
           console.error("Twilio Device Error:", error);
           setStatus("error");
@@ -72,6 +129,27 @@ export default function Dialer() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (status === "in-call") {
+      setCallDuration(0);
+      timerRef.current = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (status !== "calling" && status !== "incoming") setCallDuration(0);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [status]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+    const s = (seconds % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
 
   async function updateDevices(dev) {
     try {
@@ -116,6 +194,7 @@ export default function Dialer() {
           To: phoneNumber,
         },
       });
+      addRecentCall(phoneNumber, "outbound");
 
       newCall.on("accept", () => {
         setStatus("in-call");
@@ -152,6 +231,14 @@ export default function Dialer() {
     setStatus("ready");
     setCall(null);
     setIsMuted(false);
+  };
+
+  const handleAnswer = () => {
+    if (incomingConnection) incomingConnection.accept();
+  };
+
+  const handleReject = () => {
+    if (incomingConnection) incomingConnection.reject();
   };
 
   const toggleMute = () => {
@@ -239,15 +326,50 @@ export default function Dialer() {
               status === "ready" ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" : 
               status === "calling" ? "bg-yellow-500 animate-pulse" :
               status === "in-call" ? "bg-electric shadow-[0_0_10px_rgba(59,130,246,0.5)] animate-pulse" :
+              status === "incoming" ? "bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)] animate-pulse" :
               status === "error" ? "bg-red-500" :
               "bg-gray-500"
             }`} />
             <span className="text-xs font-medium tracking-wide uppercase text-gray-300">
               {status === "initializing" ? "Connecting..." : status}
+              {status === "in-call" && ` - ${formatTime(callDuration)}`}
             </span>
           </div>
 
-          {/* Number Input Display */}
+          {/* Tabs */}
+          <div className="flex gap-4 mb-6 border-b border-white/10 w-full justify-center pb-2">
+            <button onClick={() => setActiveTab("dialpad")} className={`text-sm font-medium transition-colors ${activeTab === 'dialpad' ? 'text-electric border-b-2 border-electric' : 'text-gray-500 hover:text-gray-300'}`}>Dialpad</button>
+            <button onClick={() => setActiveTab("recent")} className={`text-sm font-medium transition-colors ${activeTab === 'recent' ? 'text-electric border-b-2 border-electric' : 'text-gray-500 hover:text-gray-300'}`}>Recent</button>
+          </div>
+
+          {activeTab === "recent" ? (
+             <div className="w-full h-[320px] overflow-y-auto mb-4 space-y-2 pr-1 custom-scrollbar">
+               {recentCalls.length === 0 ? (
+                 <div className="text-center text-gray-500 text-sm mt-10">No recent calls</div>
+               ) : (
+                 recentCalls.map((c, i) => (
+                   <button 
+                     key={i} 
+                     onClick={() => { setPhoneNumber(c.num); setActiveTab("dialpad"); }}
+                     className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5 text-left group"
+                   >
+                     <div className="flex items-center gap-3">
+                       <div className={`p-2 rounded-full ${c.type === 'inbound' ? 'bg-blue-500/10 text-blue-500' : 'bg-gray-500/10 text-gray-400'}`}>
+                         {c.type === 'inbound' ? <Phone size={14} className="rotate-[135deg]" /> : <Phone size={14} className="-rotate-45" />}
+                       </div>
+                       <div>
+                         <div className="text-gray-200 font-medium tracking-wide">{c.num}</div>
+                         <div className="text-xs text-gray-500">{new Date(c.time).toLocaleDateString()} {new Date(c.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                       </div>
+                     </div>
+                     <Phone size={16} className="text-gray-600 group-hover:text-electric transition-colors" />
+                   </button>
+                 ))
+               )}
+             </div>
+          ) : (
+            <>
+              {/* Number Input Display */}
           <div className="w-full relative mb-8 group">
             <input
               type="text"
@@ -280,6 +402,31 @@ export default function Dialer() {
               </button>
             ))}
           </div>
+          
+          {/* Notes Area */}
+          {status === "in-call" && (
+            <div className="w-full mb-6 relative animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <textarea 
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Type call notes here..."
+                className="w-full h-24 bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-gray-200 outline-none focus:border-electric resize-none"
+              />
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(notes);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="absolute bottom-2 right-2 p-1.5 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                title="Copy notes"
+              >
+                {copied ? <CheckCircle2 size={16} className="text-green-500"/> : <ClipboardCopy size={16} />}
+              </button>
+            </div>
+          )}
+          </>
+          )}
 
           {/* Controls */}
           <div className="flex items-center justify-center gap-6 w-full mt-2">
@@ -297,7 +444,22 @@ export default function Dialer() {
               {isMuted ? <MicOff size={22} /> : <Mic size={22} />}
             </button>
 
-            {status === "calling" || status === "in-call" ? (
+            {status === "incoming" ? (
+              <>
+                <button
+                  onClick={handleReject}
+                  className="w-16 h-16 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white border border-red-500/30 transition-all shadow-[0_0_30px_rgba(239,68,68,0.2)] hover:shadow-[0_0_40px_rgba(239,68,68,0.4)]"
+                >
+                  <PhoneOff size={28} />
+                </button>
+                <button
+                  onClick={handleAnswer}
+                  className="w-16 h-16 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center hover:bg-green-500 hover:text-white border border-green-500/30 transition-all shadow-[0_0_30px_rgba(34,197,94,0.2)] hover:shadow-[0_0_40px_rgba(34,197,94,0.4)] animate-pulse"
+                >
+                  <Phone size={28} />
+                </button>
+              </>
+            ) : status === "calling" || status === "in-call" ? (
                <button
                 onClick={handleHangUp}
                 className="w-20 h-20 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white border border-red-500/30 transition-all shadow-[0_0_30px_rgba(239,68,68,0.2)] hover:shadow-[0_0_40px_rgba(239,68,68,0.4)] hover:scale-105 active:scale-95"
