@@ -281,15 +281,49 @@ export default function Dialer() {
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-electric/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
       
-      <div className="relative z-10 w-full max-w-sm">
-        <div className="bg-[#151B2E]/70 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-2xl p-8 flex flex-col items-center relative overflow-hidden">
+      <div className="relative z-10 w-full max-w-5xl flex flex-col md:flex-row gap-8 items-stretch justify-center">
+        
+        {/* Left Side: Dialer Container */}
+        <div className="bg-[#151B2E]/70 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-2xl p-8 flex flex-col items-center relative overflow-hidden w-full max-w-sm">
           
           {/* Top Subtle Gradient */}
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-electric/50 to-transparent" />
 
+          {/* Incoming Call Overlay */}
+          {status === "incoming" && (
+            <div className="absolute inset-0 z-40 bg-[#0A0F1E]/95 backdrop-blur-2xl flex flex-col items-center justify-center rounded-[2.5rem] p-6 animate-fadeIn">
+              <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 to-transparent pointer-events-none" />
+              
+              <div className="w-24 h-24 bg-purple-500/20 rounded-full flex items-center justify-center mb-8 relative">
+                <div className="absolute inset-0 rounded-full border border-purple-500/30 animate-[ping_2s_ease-in-out_infinite]" />
+                <Phone size={40} className="text-purple-400 animate-shake" />
+              </div>
+              
+              <h2 className="text-3xl font-light text-white mb-2">Incoming Call</h2>
+              <p className="text-lg text-gray-400 font-mono tracking-wider mb-16">{phoneNumber}</p>
+              
+              <div className="flex gap-8 w-full justify-center">
+                <button onClick={handleReject} className="flex flex-col items-center gap-3 group">
+                  <div className="w-16 h-16 rounded-full bg-red-500 text-white flex items-center justify-center group-hover:bg-red-600 transition-all shadow-[0_0_30px_rgba(239,68,68,0.4)] group-hover:shadow-[0_0_40px_rgba(239,68,68,0.6)] group-hover:scale-105 active:scale-95">
+                    <PhoneOff size={26} />
+                  </div>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-red-400/80 group-hover:text-red-400 transition-colors">Decline</span>
+                </button>
+
+                <button onClick={handleAnswer} className="flex flex-col items-center gap-3 group">
+                  <div className="w-16 h-16 rounded-full bg-green-500 text-white flex items-center justify-center group-hover:bg-green-600 transition-all shadow-[0_0_30px_rgba(34,197,94,0.4)] group-hover:shadow-[0_0_40px_rgba(34,197,94,0.6)] group-hover:scale-105 active:scale-95 animate-pulse">
+                    <Phone size={26} />
+                  </div>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-green-400/80 group-hover:text-green-400 transition-colors">Answer</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Normal Dialer View */}
           <button 
             onClick={() => setShowSettings(!showSettings)}
-            className="absolute top-6 right-6 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-full transition-all"
+            className="absolute top-6 right-6 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-full transition-all z-20"
           >
             <Settings size={20} className={showSettings ? "rotate-90 transition-transform" : "transition-transform"} />
           </button>
@@ -387,7 +421,7 @@ export default function Dialer() {
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   placeholder="Enter number"
-                  className="w-full bg-transparent text-center text-4xl font-light tracking-[0.1em] outline-none placeholder:text-gray-700 text-white truncate px-10 transition-all focus:scale-105"
+                  className="w-full bg-transparent text-center text-3xl font-light tracking-widest outline-none placeholder:text-gray-700 text-white overflow-x-auto whitespace-nowrap custom-scrollbar px-10 transition-all focus:scale-105"
                 />
                 {phoneNumber && (
                   <button 
@@ -400,7 +434,7 @@ export default function Dialer() {
               </div>
 
               {/* Dialpad */}
-              <div className="grid grid-cols-3 gap-x-6 gap-y-4 w-full px-4 mb-10">
+              <div className="grid grid-cols-3 gap-x-6 gap-y-4 w-full px-4 mb-4">
                 {dialpadKeys.map((key) => (
                   <button
                     key={key.label}
@@ -412,35 +446,11 @@ export default function Dialer() {
                   </button>
                 ))}
               </div>
-              
-              {/* Notes Area */}
-              {status === "in-call" && (
-                <div className="w-full mb-6 relative animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="absolute inset-0 bg-gradient-to-b from-electric/5 to-transparent rounded-2xl pointer-events-none" />
-                  <textarea 
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Take notes during the call..."
-                    className="w-full h-28 bg-black/40 border border-white/10 rounded-2xl p-4 text-sm text-gray-200 outline-none focus:border-electric/50 focus:ring-1 focus:ring-electric/30 resize-none transition-all placeholder:text-gray-600"
-                  />
-                  <button 
-                    onClick={() => {
-                      navigator.clipboard.writeText(notes);
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 2000);
-                    }}
-                    className="absolute bottom-3 right-3 p-2 bg-white/5 rounded-xl hover:bg-white/15 text-gray-400 hover:text-white transition-all backdrop-blur-md border border-white/10"
-                    title="Copy notes"
-                  >
-                    {copied ? <CheckCircle2 size={16} className="text-green-400"/> : <ClipboardCopy size={16} />}
-                  </button>
-                </div>
-              )}
             </div>
           )}
 
           {/* Controls */}
-          <div className="flex items-center justify-center gap-6 w-full mt-auto">
+          <div className="flex items-center justify-center gap-6 w-full mt-auto pt-6 border-t border-white/5">
             <button
               onClick={toggleMute}
               disabled={status !== "in-call"}
@@ -455,22 +465,7 @@ export default function Dialer() {
               {isMuted ? <MicOff size={22} /> : <Mic size={22} />}
             </button>
 
-            {status === "incoming" ? (
-              <div className="flex gap-4">
-                <button
-                  onClick={handleReject}
-                  className="w-16 h-16 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-all shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:shadow-[0_0_40px_rgba(239,68,68,0.6)] hover:scale-105 active:scale-95"
-                >
-                  <PhoneOff size={26} />
-                </button>
-                <button
-                  onClick={handleAnswer}
-                  className="w-16 h-16 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-all shadow-[0_0_30px_rgba(34,197,94,0.4)] hover:shadow-[0_0_40px_rgba(34,197,94,0.6)] hover:scale-105 active:scale-95 animate-pulse"
-                >
-                  <Phone size={26} className="animate-shake" />
-                </button>
-              </div>
-            ) : status === "calling" || status === "in-call" ? (
+            {status === "calling" || status === "in-call" ? (
                <button
                 onClick={handleHangUp}
                 className="w-20 h-20 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-all shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:shadow-[0_0_40px_rgba(239,68,68,0.6)] hover:scale-105 active:scale-95"
@@ -497,6 +492,55 @@ export default function Dialer() {
             </div>
           )}
 
+        </div>
+
+        {/* Right Side: Persistent Notes Panel */}
+        <div className="bg-[#151B2E]/70 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-2xl p-8 flex flex-col relative overflow-hidden w-full max-w-sm md:max-w-md">
+          {/* Subtle Gradient */}
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+          
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+              <ClipboardCopy size={18} className="text-gray-400" />
+            </div>
+            <div>
+              <h2 className="text-xl font-light text-white">Call Notes</h2>
+              <p className="text-xs text-gray-500 mt-1">Capture details while on the line</p>
+            </div>
+          </div>
+          
+          <div className="flex-1 w-full relative group">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent rounded-2xl pointer-events-none" />
+            <textarea 
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Type your call notes here..."
+              className="w-full h-full min-h-[300px] bg-black/40 border border-white/10 rounded-2xl p-5 text-sm text-gray-200 outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 resize-none transition-all placeholder:text-gray-600 custom-scrollbar"
+            />
+          </div>
+          
+          <div className="mt-6 flex justify-end">
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(notes);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="flex items-center gap-2 px-5 py-2.5 bg-white/5 rounded-xl hover:bg-white/10 text-gray-300 hover:text-white transition-all backdrop-blur-md border border-white/10 text-sm font-medium"
+            >
+              {copied ? (
+                <>
+                  <CheckCircle2 size={16} className="text-green-400"/>
+                  <span className="text-green-400">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <ClipboardCopy size={16} />
+                  <span>Copy to Clipboard</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
