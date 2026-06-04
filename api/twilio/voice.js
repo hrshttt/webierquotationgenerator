@@ -4,28 +4,26 @@ export default function handler(req, res) {
   const VoiceResponse = twilio.twiml.VoiceResponse;
   
   const to = req.body?.To || req.query?.To;
+  const direction = req.body?.Direction || req.query?.Direction;
   const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
+
+  console.log('Received Twilio Webhook:', { to, direction, twilioPhoneNumber });
 
   const twiml = new VoiceResponse();
 
   if (!to) {
     twiml.say('No phone number provided.');
-  } else if (to === twilioPhoneNumber || req.body?.Direction === 'inbound') {
-    // Incoming call to our Twilio Number
-    const dial = twiml.dial({ timeout: 10 });
+  } else if (to === twilioPhoneNumber || direction === 'inbound') {
+    console.log('Routing as INCOMING call to webier_admin client');
+    const dial = twiml.dial({ timeout: 20 });
     dial.client('webier_admin');
     
-    // If the browser client doesn't answer (timeout or offline), fallback to personal phone
-    if (process.env.PERSONAL_PHONE_NUMBER) {
-      twiml.dial(process.env.PERSONAL_PHONE_NUMBER);
-    } else {
-      twiml.say('The administrator is currently unavailable. Please leave a message after the beep.');
-      twiml.record();
-    }
+    // Safest fallback that won't trigger Twilio Trial restrictions
+    twiml.say('The administrator is currently unavailable. Please try again later.');
   } else if (!twilioPhoneNumber) {
     twiml.say('Server configuration error. Missing caller ID.');
   } else {
-    // Outbound call from the browser
+    console.log('Routing as OUTBOUND call to', to);
     const dial = twiml.dial({ callerId: twilioPhoneNumber });
     dial.number(to);
   }
