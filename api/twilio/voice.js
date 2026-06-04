@@ -12,7 +12,7 @@ export default function handler(req, res) {
     twiml.say('No phone number provided.');
   } else if (to === twilioPhoneNumber || req.body?.Direction === 'inbound') {
     // Incoming call to our Twilio Number
-    const dial = twiml.dial({ timeout: 20 });
+    const dial = twiml.dial({ timeout: 10 });
     dial.client('webier_admin');
     
     // If the browser client doesn't answer (timeout or offline), fallback to personal phone
