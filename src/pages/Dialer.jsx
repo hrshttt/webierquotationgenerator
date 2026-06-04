@@ -421,7 +421,11 @@ export default function Dialer() {
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   placeholder="Enter number"
-                  className="w-full bg-transparent text-center text-3xl font-light tracking-widest outline-none placeholder:text-gray-700 text-white overflow-x-auto whitespace-nowrap custom-scrollbar px-10 transition-all focus:scale-105"
+                  className={`w-full bg-transparent text-center font-light tracking-widest outline-none placeholder:text-gray-700 text-white truncate px-10 transition-all focus:scale-105 ${
+                    phoneNumber.length > 14 ? 'text-xl' :
+                    phoneNumber.length > 10 ? 'text-2xl' :
+                    'text-3xl'
+                  }`}
                 />
                 {phoneNumber && (
                   <button 
