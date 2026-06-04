@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage'
 import DashboardLayout from './components/DashboardLayout'
 import QuotationGenerator from './pages/QuotationGenerator'
 import InvoiceGenerator from './pages/InvoiceGenerator'
+import Dialer from './pages/Dialer'
 
 export default function App() {
   const { isAuthenticated } = useAuth()
@@ -24,6 +25,7 @@ export default function App() {
       >
         <Route path="quotation" element={<QuotationGenerator />} />
         <Route path="invoice" element={<InvoiceGenerator />} />
+        <Route path="dialer" element={<Dialer />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

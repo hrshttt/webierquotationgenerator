@@ -8,6 +8,7 @@ import {
   X,
   LogOut,
   ChevronRight,
+  Phone,
 } from 'lucide-react'
 
 const navItems = [
@@ -22,6 +23,12 @@ const navItems = [
     label: 'Invoice Generator',
     icon: Receipt,
     description: 'Generate & manage invoices',
+  },
+  {
+    to: '/dialer',
+    label: 'Sales Dialer',
+    icon: Phone,
+    description: 'Make voice calls via Twilio',
   },
 ]
 
