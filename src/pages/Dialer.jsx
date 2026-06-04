@@ -276,43 +276,50 @@ export default function Dialer() {
   ];
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-navy-900 flex items-center justify-center p-4">
+    <div className="min-h-[calc(100vh-64px)] bg-[#0A0F1E] flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-electric/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
+      
       <div className="relative z-10 w-full max-w-sm">
-        <div className="bg-surface backdrop-blur-2xl border border-white/5 rounded-3xl shadow-2xl p-8 flex flex-col items-center ring-1 ring-white/5 relative">
+        <div className="bg-[#151B2E]/70 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-2xl p-8 flex flex-col items-center relative overflow-hidden">
           
+          {/* Top Subtle Gradient */}
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-electric/50 to-transparent" />
+
           <button 
             onClick={() => setShowSettings(!showSettings)}
-            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+            className="absolute top-6 right-6 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-full transition-all"
           >
-            <Settings size={20} />
+            <Settings size={20} className={showSettings ? "rotate-90 transition-transform" : "transition-transform"} />
           </button>
 
           {/* Settings Dropdown */}
           {showSettings && (
-            <div className="absolute top-12 right-4 bg-navy-800 border border-white/10 rounded-xl p-4 shadow-xl z-20 w-64 text-sm text-gray-200">
-              <h3 className="font-semibold mb-3 flex items-center gap-2"><Mic size={16}/> Audio Settings</h3>
-              <div className="space-y-4">
+            <div className="absolute top-16 right-6 bg-[#1A2138] border border-white/10 rounded-2xl p-5 shadow-2xl z-30 w-72 text-sm text-gray-200 animate-fadeIn backdrop-blur-xl">
+              <h3 className="font-semibold mb-4 flex items-center gap-2 text-white"><Mic size={16} className="text-electric"/> Audio Devices</h3>
+              <div className="space-y-5">
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1">Microphone</label>
+                  <label className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Microphone</label>
                   <select 
                     value={selectedInput} 
                     onChange={(e) => setSelectedInput(e.target.value)}
-                    className="w-full bg-navy-900 border border-white/10 rounded-lg p-2 text-white outline-none focus:border-electric"
+                    className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-electric transition-colors appearance-none"
                   >
                     {inputDevices.map(d => (
-                      <option key={d.deviceId} value={d.deviceId}>{d.label || 'Default Microphone'}</option>
+                      <option key={d.deviceId} value={d.deviceId}>{d.label || 'System Default'}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1 flex items-center gap-1"><Volume2 size={12}/> Speaker</label>
+                  <label className="block text-xs font-medium text-gray-400 mb-2 flex items-center gap-1 uppercase tracking-wider"><Volume2 size={12}/> Speaker</label>
                   <select 
                     value={selectedOutput} 
                     onChange={(e) => setSelectedOutput(e.target.value)}
-                    className="w-full bg-navy-900 border border-white/10 rounded-lg p-2 text-white outline-none focus:border-electric"
+                    className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-electric transition-colors appearance-none"
                   >
                     {outputDevices.map(d => (
-                      <option key={d.deviceId} value={d.deviceId}>{d.label || 'Default Speaker'}</option>
+                      <option key={d.deviceId} value={d.deviceId}>{d.label || 'System Default'}</option>
                     ))}
                   </select>
                 </div>
@@ -321,167 +328,171 @@ export default function Dialer() {
           )}
 
           {/* Status Indicator */}
-          <div className="flex items-center gap-2 mb-8 bg-black/20 px-4 py-2 rounded-full border border-white/5">
-            <div className={`w-2 h-2 rounded-full ${
-              status === "ready" ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" : 
-              status === "calling" ? "bg-yellow-500 animate-pulse" :
-              status === "in-call" ? "bg-electric shadow-[0_0_10px_rgba(59,130,246,0.5)] animate-pulse" :
-              status === "incoming" ? "bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)] animate-pulse" :
-              status === "error" ? "bg-red-500" :
+          <div className="flex items-center gap-2.5 mb-8 bg-black/30 px-5 py-2.5 rounded-full border border-white/5 backdrop-blur-md">
+            <div className={`w-2.5 h-2.5 rounded-full ${
+              status === "ready" ? "bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)]" : 
+              status === "calling" ? "bg-yellow-400 shadow-[0_0_12px_rgba(250,204,21,0.6)] animate-pulse" :
+              status === "in-call" ? "bg-electric shadow-[0_0_15px_rgba(59,130,246,0.8)] animate-pulse" :
+              status === "incoming" ? "bg-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.8)] animate-pulse" :
+              status === "error" ? "bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.6)]" :
               "bg-gray-500"
             }`} />
-            <span className="text-xs font-medium tracking-wide uppercase text-gray-300">
-              {status === "initializing" ? "Connecting..." : status}
-              {status === "in-call" && ` - ${formatTime(callDuration)}`}
+            <span className="text-xs font-bold tracking-widest uppercase text-gray-300">
+              {status === "initializing" ? "Connecting" : status}
+              {status === "in-call" && <span className="text-white ml-2 tabular-nums">{formatTime(callDuration)}</span>}
             </span>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-4 mb-6 border-b border-white/10 w-full justify-center pb-2">
-            <button onClick={() => setActiveTab("dialpad")} className={`text-sm font-medium transition-colors ${activeTab === 'dialpad' ? 'text-electric border-b-2 border-electric' : 'text-gray-500 hover:text-gray-300'}`}>Dialpad</button>
-            <button onClick={() => setActiveTab("recent")} className={`text-sm font-medium transition-colors ${activeTab === 'recent' ? 'text-electric border-b-2 border-electric' : 'text-gray-500 hover:text-gray-300'}`}>Recent</button>
+          <div className="flex gap-2 mb-8 bg-black/20 p-1 rounded-full w-full max-w-[240px]">
+            <button onClick={() => setActiveTab("dialpad")} className={`flex-1 py-2 px-4 rounded-full text-xs font-semibold tracking-wide transition-all ${activeTab === 'dialpad' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}>Dialpad</button>
+            <button onClick={() => setActiveTab("recent")} className={`flex-1 py-2 px-4 rounded-full text-xs font-semibold tracking-wide transition-all ${activeTab === 'recent' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}>Recent</button>
           </div>
 
           {activeTab === "recent" ? (
-             <div className="w-full h-[320px] overflow-y-auto mb-4 space-y-2 pr-1 custom-scrollbar">
+             <div className="w-full h-[380px] overflow-y-auto mb-2 space-y-2 pr-2 custom-scrollbar">
                {recentCalls.length === 0 ? (
-                 <div className="text-center text-gray-500 text-sm mt-10">No recent calls</div>
+                 <div className="flex flex-col items-center justify-center h-full text-gray-500 space-y-4">
+                   <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
+                     <Phone size={24} className="opacity-50" />
+                   </div>
+                   <span className="text-sm font-medium">No recent calls</span>
+                 </div>
                ) : (
                  recentCalls.map((c, i) => (
                    <button 
                      key={i} 
                      onClick={() => { setPhoneNumber(c.num); setActiveTab("dialpad"); }}
-                     className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5 text-left group"
+                     className="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all border border-transparent hover:border-white/10 group active:scale-[0.98]"
                    >
-                     <div className="flex items-center gap-3">
-                       <div className={`p-2 rounded-full ${c.type === 'inbound' ? 'bg-blue-500/10 text-blue-500' : 'bg-gray-500/10 text-gray-400'}`}>
-                         {c.type === 'inbound' ? <Phone size={14} className="rotate-[135deg]" /> : <Phone size={14} className="-rotate-45" />}
+                     <div className="flex items-center gap-4">
+                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${c.type === 'inbound' ? 'bg-blue-500/10 text-electric' : 'bg-white/5 text-gray-400'}`}>
+                         {c.type === 'inbound' ? <Phone size={16} className="rotate-[135deg]" /> : <Phone size={16} className="-rotate-45" />}
                        </div>
-                       <div>
-                         <div className="text-gray-200 font-medium tracking-wide">{c.num}</div>
-                         <div className="text-xs text-gray-500">{new Date(c.time).toLocaleDateString()} {new Date(c.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                       <div className="text-left">
+                         <div className="text-white font-medium tracking-wide text-sm">{c.num}</div>
+                         <div className="text-[11px] text-gray-500 mt-0.5">{new Date(c.time).toLocaleDateString()} • {new Date(c.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                        </div>
                      </div>
-                     <Phone size={16} className="text-gray-600 group-hover:text-electric transition-colors" />
                    </button>
                  ))
                )}
              </div>
           ) : (
-            <>
+            <div className="w-full flex flex-col items-center">
               {/* Number Input Display */}
-          <div className="w-full relative mb-8 group">
-            <input
-              type="text"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="Enter number..."
-              className="w-full bg-transparent text-center text-4xl font-light tracking-wider outline-none placeholder:text-gray-600 text-white truncate pr-10"
-            />
-            {phoneNumber && (
-              <button 
-                onClick={handleBackspace}
-                className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
-              >
-                <Delete size={24} />
-              </button>
-            )}
-            <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-700 to-transparent mt-4 opacity-50 group-hover:opacity-100 transition-opacity" />
-          </div>
+              <div className="w-full relative mb-10 group h-16 flex items-center justify-center">
+                <input
+                  type="text"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="Enter number"
+                  className="w-full bg-transparent text-center text-4xl font-light tracking-[0.1em] outline-none placeholder:text-gray-700 text-white truncate px-10 transition-all focus:scale-105"
+                />
+                {phoneNumber && (
+                  <button 
+                    onClick={handleBackspace}
+                    className="absolute right-2 p-2 text-gray-500 hover:text-white transition-colors bg-white/0 hover:bg-white/10 rounded-full"
+                  >
+                    <Delete size={22} />
+                  </button>
+                )}
+              </div>
 
-          {/* Dialpad */}
-          <div className="grid grid-cols-3 gap-4 w-full mb-8">
-            {dialpadKeys.map((key) => (
-              <button
-                key={key.label}
-                onClick={() => handleKeyPress(key.label)}
-                className="aspect-square flex flex-col items-center justify-center rounded-full bg-white/5 hover:bg-white/10 active:bg-white/5 transition-all border border-transparent hover:border-white/10 group"
-              >
-                <span className="text-2xl font-normal text-gray-300 group-hover:text-white transition-colors">{key.label}</span>
-                <span className="text-[10px] text-gray-500 uppercase tracking-widest h-3 font-medium">{key.sub}</span>
-              </button>
-            ))}
-          </div>
-          
-          {/* Notes Area */}
-          {status === "in-call" && (
-            <div className="w-full mb-6 relative animate-in fade-in slide-in-from-bottom-4 duration-300">
-              <textarea 
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Type call notes here..."
-                className="w-full h-24 bg-black/20 border border-white/10 rounded-xl p-3 text-sm text-gray-200 outline-none focus:border-electric resize-none"
-              />
-              <button 
-                onClick={() => {
-                  navigator.clipboard.writeText(notes);
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 2000);
-                }}
-                className="absolute bottom-2 right-2 p-1.5 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
-                title="Copy notes"
-              >
-                {copied ? <CheckCircle2 size={16} className="text-green-500"/> : <ClipboardCopy size={16} />}
-              </button>
+              {/* Dialpad */}
+              <div className="grid grid-cols-3 gap-x-6 gap-y-4 w-full px-4 mb-10">
+                {dialpadKeys.map((key) => (
+                  <button
+                    key={key.label}
+                    onClick={() => handleKeyPress(key.label)}
+                    className="aspect-square flex flex-col items-center justify-center rounded-full bg-black/20 hover:bg-white/10 active:bg-white/20 active:scale-90 transition-all border border-white/5 hover:border-white/20 group shadow-lg"
+                  >
+                    <span className="text-3xl font-light text-white transition-colors">{key.label}</span>
+                    <span className="text-[9px] text-gray-500 uppercase tracking-widest h-3 font-semibold mt-1 group-hover:text-gray-400">{key.sub}</span>
+                  </button>
+                ))}
+              </div>
+              
+              {/* Notes Area */}
+              {status === "in-call" && (
+                <div className="w-full mb-6 relative animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="absolute inset-0 bg-gradient-to-b from-electric/5 to-transparent rounded-2xl pointer-events-none" />
+                  <textarea 
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Take notes during the call..."
+                    className="w-full h-28 bg-black/40 border border-white/10 rounded-2xl p-4 text-sm text-gray-200 outline-none focus:border-electric/50 focus:ring-1 focus:ring-electric/30 resize-none transition-all placeholder:text-gray-600"
+                  />
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(notes);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="absolute bottom-3 right-3 p-2 bg-white/5 rounded-xl hover:bg-white/15 text-gray-400 hover:text-white transition-all backdrop-blur-md border border-white/10"
+                    title="Copy notes"
+                  >
+                    {copied ? <CheckCircle2 size={16} className="text-green-400"/> : <ClipboardCopy size={16} />}
+                  </button>
+                </div>
+              )}
             </div>
-          )}
-          </>
           )}
 
           {/* Controls */}
-          <div className="flex items-center justify-center gap-6 w-full mt-2">
+          <div className="flex items-center justify-center gap-6 w-full mt-auto">
             <button
               onClick={toggleMute}
               disabled={status !== "in-call"}
-              className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+              className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${
                 status === "in-call" 
                   ? isMuted 
-                    ? "bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 hover:bg-yellow-500/30" 
-                    : "bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10 hover:text-white"
-                  : "bg-black/20 text-gray-600 cursor-not-allowed border border-transparent"
+                    ? "bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 hover:bg-yellow-500/30 shadow-[0_0_20px_rgba(234,179,8,0.2)]" 
+                    : "bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10 hover:text-white"
+                  : "bg-black/40 text-gray-700 cursor-not-allowed border border-transparent opacity-50"
               }`}
             >
               {isMuted ? <MicOff size={22} /> : <Mic size={22} />}
             </button>
 
             {status === "incoming" ? (
-              <>
+              <div className="flex gap-4">
                 <button
                   onClick={handleReject}
-                  className="w-16 h-16 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white border border-red-500/30 transition-all shadow-[0_0_30px_rgba(239,68,68,0.2)] hover:shadow-[0_0_40px_rgba(239,68,68,0.4)]"
+                  className="w-16 h-16 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-all shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:shadow-[0_0_40px_rgba(239,68,68,0.6)] hover:scale-105 active:scale-95"
                 >
-                  <PhoneOff size={28} />
+                  <PhoneOff size={26} />
                 </button>
                 <button
                   onClick={handleAnswer}
-                  className="w-16 h-16 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center hover:bg-green-500 hover:text-white border border-green-500/30 transition-all shadow-[0_0_30px_rgba(34,197,94,0.2)] hover:shadow-[0_0_40px_rgba(34,197,94,0.4)] animate-pulse"
+                  className="w-16 h-16 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-all shadow-[0_0_30px_rgba(34,197,94,0.4)] hover:shadow-[0_0_40px_rgba(34,197,94,0.6)] hover:scale-105 active:scale-95 animate-pulse"
                 >
-                  <Phone size={28} />
+                  <Phone size={26} className="animate-shake" />
                 </button>
-              </>
+              </div>
             ) : status === "calling" || status === "in-call" ? (
                <button
                 onClick={handleHangUp}
-                className="w-20 h-20 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white border border-red-500/30 transition-all shadow-[0_0_30px_rgba(239,68,68,0.2)] hover:shadow-[0_0_40px_rgba(239,68,68,0.4)] hover:scale-105 active:scale-95"
+                className="w-20 h-20 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-all shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:shadow-[0_0_40px_rgba(239,68,68,0.6)] hover:scale-105 active:scale-95"
               >
-                <PhoneOff size={32} />
+                <PhoneOff size={30} />
               </button>
             ) : (
               <button
                 onClick={handleCall}
                 disabled={status === "initializing" || status === "error" || !phoneNumber}
-                className="w-20 h-20 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center hover:bg-green-500 hover:text-white border border-green-500/30 transition-all shadow-[0_0_30px_rgba(34,197,94,0.2)] hover:shadow-[0_0_40px_rgba(34,197,94,0.4)] hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                className="w-20 h-20 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-all shadow-[0_0_30px_rgba(34,197,94,0.4)] hover:shadow-[0_0_40px_rgba(34,197,94,0.6)] hover:scale-105 active:scale-95 disabled:opacity-30 disabled:pointer-events-none disabled:bg-green-500/50"
               >
-                <Phone size={32} className="ml-1" />
+                <Phone size={30} className="ml-1" />
               </button>
             )}
             
-            <div className="w-14 h-14" />
+            <div className="w-14 h-14" /> {/* Spacer for balance */}
           </div>
 
           {/* Error Message */}
           {errorMsg && (
-            <div className="mt-6 text-sm text-red-400/90 text-center bg-red-500/10 py-2 px-4 rounded-lg border border-red-500/20 w-full">
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[90%] z-50 text-xs font-medium text-red-100 text-center bg-red-500/80 backdrop-blur-md py-2.5 px-4 rounded-xl border border-red-500 shadow-xl animate-fadeIn">
               {errorMsg}
             </div>
           )}
