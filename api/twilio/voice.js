@@ -4,16 +4,16 @@ export default function handler(req, res) {
   const VoiceResponse = twilio.twiml.VoiceResponse;
   
   const to = req.body?.To || req.query?.To;
-  const direction = req.body?.Direction || req.query?.Direction;
+  const from = req.body?.From || req.query?.From || '';
   const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
 
-  console.log('Received Twilio Webhook:', { to, direction, twilioPhoneNumber });
+  console.log('Received Twilio Webhook:', { to, from, twilioPhoneNumber });
 
   const twiml = new VoiceResponse();
 
   if (!to) {
     twiml.say('No phone number provided.');
-  } else if (to === twilioPhoneNumber || direction === 'inbound') {
+  } else if (to === twilioPhoneNumber && !from.startsWith('client:')) {
     console.log('Routing as INCOMING call to webier_admin client');
     const dial = twiml.dial({ timeout: 10 });
     dial.client('webier_admin');
