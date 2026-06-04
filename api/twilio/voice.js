@@ -19,8 +19,10 @@ export default function handler(req, res) {
     dial.client('webier_admin');
     
     // Fallback to personal phone
-    if (process.env.PERSONAL_PHONE_NUMBER) {
-      twiml.dial(process.env.PERSONAL_PHONE_NUMBER);
+    const personalNum = process.env.PERSONAL_PHONE_NUMBER;
+    if (personalNum && personalNum.trim().startsWith('+')) {
+      twiml.say('Please wait while we connect you.');
+      twiml.dial(personalNum.trim());
     } else {
       twiml.say('The administrator is currently unavailable. Please try again later.');
     }
