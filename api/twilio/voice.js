@@ -15,11 +15,15 @@ export default function handler(req, res) {
     twiml.say('No phone number provided.');
   } else if (to === twilioPhoneNumber || direction === 'inbound') {
     console.log('Routing as INCOMING call to webier_admin client');
-    const dial = twiml.dial({ timeout: 20 });
+    const dial = twiml.dial({ timeout: 10 });
     dial.client('webier_admin');
     
-    // Safest fallback that won't trigger Twilio Trial restrictions
-    twiml.say('The administrator is currently unavailable. Please try again later.');
+    // Fallback to personal phone
+    if (process.env.PERSONAL_PHONE_NUMBER) {
+      twiml.dial(process.env.PERSONAL_PHONE_NUMBER);
+    } else {
+      twiml.say('The administrator is currently unavailable. Please try again later.');
+    }
   } else if (!twilioPhoneNumber) {
     twiml.say('Server configuration error. Missing caller ID.');
   } else {
