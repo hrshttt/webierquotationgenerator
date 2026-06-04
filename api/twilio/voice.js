@@ -22,7 +22,8 @@ export default function handler(req, res) {
     const personalNum = process.env.PERSONAL_PHONE_NUMBER;
     if (personalNum && personalNum.trim().startsWith('+')) {
       twiml.say('Please wait while we connect you.');
-      twiml.dial(personalNum.trim());
+      const fallbackDial = twiml.dial({ callerId: twilioPhoneNumber });
+      fallbackDial.number(personalNum.trim());
     } else {
       twiml.say('The administrator is currently unavailable. Please try again later.');
     }
