@@ -270,8 +270,8 @@ export default function Dialer() {
     { label: "7", sub: "PQRS" },
     { label: "8", sub: "TUV" },
     { label: "9", sub: "WXYZ" },
-    { label: "*", sub: "" },
-    { label: "0", sub: "+" },
+    { label: "+", sub: "" },
+    { label: "0", sub: "" },
     { label: "#", sub: "" },
   ];
 
