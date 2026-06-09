@@ -189,9 +189,10 @@ export default function Dialer() {
     setStatus("calling");
     
     try {
+      const cleanedNumber = phoneNumber.replace(/[\s\-\(\)]/g, "");
       const newCall = await device.connect({
         params: {
-          To: phoneNumber,
+          targetNumber: cleanedNumber,
         },
       });
       addRecentCall(phoneNumber, "outbound");

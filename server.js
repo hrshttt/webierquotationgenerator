@@ -45,7 +45,16 @@ app.get('/api/twilio/token', (req, res) => {
 
 app.post('/api/twilio/voice', (req, res) => {
   const VoiceResponse = twilio.twiml.VoiceResponse;
-  const to = req.body.To;
+  let to = req.body.targetNumber || req.body.To;
+  if (to) {
+    if (Array.isArray(to)) to = to[0];
+    if (typeof to === 'string') {
+      to = to.replace(/ /g, '+');
+      if (!to.startsWith('+')) {
+        to = '+' + to;
+      }
+    }
+  }
   const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
 
   const twiml = new VoiceResponse();

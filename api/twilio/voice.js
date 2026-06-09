@@ -3,7 +3,16 @@ import twilio from 'twilio';
 export default function handler(req, res) {
   const VoiceResponse = twilio.twiml.VoiceResponse;
   
-  const to = req.body?.To || req.query?.To;
+  let to = req.body?.targetNumber || req.query?.targetNumber || req.body?.To || req.query?.To;
+  if (to) {
+    if (Array.isArray(to)) to = to[0];
+    if (typeof to === 'string') {
+      to = to.replace(/ /g, '+');
+      if (!to.startsWith('+')) {
+        to = '+' + to;
+      }
+    }
+  }
   const from = req.body?.From || req.query?.From || '';
   const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
 
