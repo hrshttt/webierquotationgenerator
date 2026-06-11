@@ -12,6 +12,7 @@ export default function DocumentPreview({
   onRegenerate,
   filename = 'Document',
   emptyMessage = 'Fill in the form and click Generate to see your document here.',
+  hideLetterhead = false,
 }) {
   const { header, footer, error: letterheadError } = useLetterhead()
   const previewRef = useRef(null)
@@ -132,11 +133,11 @@ export default function DocumentPreview({
           className="max-w-[210mm] mx-auto shadow-xl rounded-sm"
           style={{
             background: '#ffffff',
-            minHeight: '297mm',
+            minHeight: '296mm',
           }}
         >
           {/* Letterhead Header */}
-          {header && (
+          {!hideLetterhead && header && (
             <div style={{ width: '100%', padding: '24px 40px 0 40px' }}>
               <img
                 src={header}
@@ -153,7 +154,7 @@ export default function DocumentPreview({
           </div>
 
           {/* Letterhead Footer */}
-          {footer && (
+          {!hideLetterhead && footer && (
             <div style={{ width: '100%', padding: '0 40px 24px 40px', marginTop: 'auto' }}>
               <img
                 src={footer}

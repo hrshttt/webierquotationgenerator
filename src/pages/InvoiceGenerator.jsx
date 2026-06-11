@@ -12,6 +12,7 @@ export default function InvoiceGenerator() {
   const [form, setForm] = useState({
     invoiceNumber: '',
     invoiceDate: new Date().toISOString().split('T')[0],
+    hasDueDate: true,
     dueDate: '',
     clientName: '',
     companyName: '',
@@ -19,8 +20,11 @@ export default function InvoiceGenerator() {
     projectName: '',
     lineItems: [{ ...emptyLineItem }],
     taxPercent: 0,
+    advancePercent: 0,
+    paymentStage: 'Full',
     paymentMethod: 'Bank Transfer',
     paymentDetails: '',
+    paymentLink: '',
     notes: 'Thank you for your business!',
   })
   const [isGenerated, setIsGenerated] = useState(false)
@@ -49,7 +53,17 @@ export default function InvoiceGenerator() {
   const getLineTotal = (item) => (parseFloat(item.quantity) || 0) * (parseFloat(item.unitPrice) || 0)
   const subtotal = form.lineItems.reduce((sum, item) => sum + getLineTotal(item), 0)
   const taxAmount = subtotal * ((parseFloat(form.taxPercent) || 0) / 100)
-  const totalDue = subtotal + taxAmount
+
+  let surchargePercent = 0
+  if (form.paymentMethod === 'Wise') surchargePercent = 5
+  else if (form.paymentMethod === 'PayPal' || form.paymentMethod === 'Bank Transfer') surchargePercent = 10
+
+  const surchargeAmount = (subtotal + taxAmount) * (surchargePercent / 100)
+  const totalAmount = subtotal + taxAmount + surchargeAmount
+
+  const advancePercent = parseFloat(form.advancePercent) || 0
+  const advanceAmount = totalAmount * (advancePercent / 100)
+  const balanceDue = totalAmount - advanceAmount
 
   const handleGenerate = () => {
     if (!form.clientName || form.lineItems.some((i) => !i.description || !i.unitPrice)) {
@@ -84,9 +98,16 @@ export default function InvoiceGenerator() {
               </Field>
             </div>
 
-            <Field label="Due Date">
-              <input type="date" value={form.dueDate} onChange={(e) => updateField('dueDate', e.target.value)} className={`${inputClass} [color-scheme:dark]`} />
-            </Field>
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="block text-xs font-medium text-gray-400">Due Date</label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={form.hasDueDate} onChange={(e) => updateField('hasDueDate', e.target.checked)} className="accent-electric" />
+                  <span className="text-[10px] text-gray-500">Enable</span>
+                </label>
+              </div>
+              <input type="date" value={form.dueDate} disabled={!form.hasDueDate} onChange={(e) => updateField('dueDate', e.target.value)} className={`${inputClass} [color-scheme:dark] ${!form.hasDueDate ? 'opacity-50 cursor-not-allowed' : ''}`} />
+            </div>
 
             <Field label="Client Name *">
               <input type="text" value={form.clientName} onChange={(e) => updateField('clientName', e.target.value)} placeholder="John Doe" className={inputClass} />
@@ -148,11 +169,27 @@ export default function InvoiceGenerator() {
               </div>
             </div>
 
-            {/* Tax */}
-            <Field label="Tax % (Optional)">
-              <input type="number" value={form.taxPercent} onChange={(e) => updateField('taxPercent', e.target.value)}
-                min="0" max="100" className={inputClass} />
-            </Field>
+            {/* Tax and Advance */}
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Tax % (Optional)">
+                <input type="number" value={form.taxPercent} onChange={(e) => updateField('taxPercent', e.target.value)}
+                  min="0" max="100" className={inputClass} />
+              </Field>
+              <Field label="Advance Payment %">
+                <input type="number" value={form.advancePercent} onChange={(e) => updateField('advancePercent', e.target.value)}
+                  min="0" max="100" className={inputClass} />
+              </Field>
+            </div>
+
+            {form.advancePercent > 0 && (
+              <Field label="Invoice Stage">
+                <select value={form.paymentStage} onChange={(e) => updateField('paymentStage', e.target.value)} className={selectClass}>
+                  <option value="Full">Full Payment</option>
+                  <option value="Advance">Advance Payment</option>
+                  <option value="Final">Final Payment</option>
+                </select>
+              </Field>
+            )}
 
             {/* Summary */}
             <div className="bg-navy-900 rounded-xl px-3 py-3 border border-electric/20 space-y-2">
@@ -166,10 +203,44 @@ export default function InvoiceGenerator() {
                   <span className="text-sm text-gray-300">{formatCurrency(taxAmount)}</span>
                 </div>
               )}
-              <div className="flex justify-between items-center pt-1 border-t border-white/5">
-                <span className="text-xs font-semibold text-white">Total Amount Due</span>
-                <span className="text-base font-bold text-electric">{formatCurrency(totalDue)}</span>
-              </div>
+              {surchargeAmount > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-400">{form.paymentMethod} Surcharge ({surchargePercent}%)</span>
+                  <span className="text-sm text-gray-300">{formatCurrency(surchargeAmount)}</span>
+                </div>
+              )}
+              {form.paymentStage === 'Advance' ? (
+                <>
+                  <div className="flex justify-between items-center pt-1 border-t border-white/5">
+                    <span className="text-xs font-semibold text-gray-300">Total Project Amount</span>
+                    <span className="text-sm font-bold text-gray-200">{formatCurrency(totalAmount)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-1 border-t border-white/5">
+                    <span className="text-xs font-semibold text-white">Advance Due ({form.advancePercent}%)</span>
+                    <span className="text-base font-bold text-electric">{formatCurrency(advanceAmount)}</span>
+                  </div>
+                </>
+              ) : form.paymentStage === 'Final' ? (
+                <>
+                  <div className="flex justify-between items-center pt-1 border-t border-white/5">
+                    <span className="text-xs font-semibold text-gray-300">Total Project Amount</span>
+                    <span className="text-sm font-bold text-gray-200">{formatCurrency(totalAmount)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-400">Less Advance Paid ({form.advancePercent}%)</span>
+                    <span className="text-sm text-gray-300">-{formatCurrency(advanceAmount)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-1 border-t border-white/5">
+                    <span className="text-xs font-semibold text-white">Balance Due</span>
+                    <span className="text-base font-bold text-electric">{formatCurrency(balanceDue)}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-between items-center pt-1 border-t border-white/5">
+                  <span className="text-xs font-semibold text-white">Total Amount Due</span>
+                  <span className="text-base font-bold text-electric">{formatCurrency(totalAmount)}</span>
+                </div>
+              )}
             </div>
 
             {/* Payment */}
@@ -179,9 +250,15 @@ export default function InvoiceGenerator() {
               </select>
             </Field>
 
-            <Field label="Payment Details">
-              <textarea value={form.paymentDetails} onChange={(e) => updateField('paymentDetails', e.target.value)}
-                rows={3} placeholder="Bank Name: ...&#10;Account No: ...&#10;IFSC: ..." className={`${inputClass} resize-none`} />
+            {form.paymentMethod === 'Bank Transfer' && (
+              <Field label="Payment Details">
+                <textarea value={form.paymentDetails} onChange={(e) => updateField('paymentDetails', e.target.value)}
+                  rows={3} placeholder="Bank Name: ...&#10;Account No: ...&#10;IFSC: ..." className={`${inputClass} resize-none`} />
+              </Field>
+            )}
+
+            <Field label="Payment Link (Optional)">
+              <input type="url" value={form.paymentLink} onChange={(e) => updateField('paymentLink', e.target.value)} placeholder="https://paypal.me/..." className={inputClass} />
             </Field>
 
             <Field label="Notes (Optional)">
@@ -205,6 +282,7 @@ export default function InvoiceGenerator() {
         isGenerated={isGenerated}
         filename={filename}
         emptyMessage="Fill in the invoice details and click Generate to create a professional invoice."
+        hideLetterhead={true}
       >
         <InvoiceDocument data={form} />
       </DocumentPreview>

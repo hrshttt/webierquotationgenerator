@@ -8,7 +8,6 @@ import {
   X,
   LogOut,
   ChevronRight,
-  Phone,
 } from 'lucide-react'
 
 const navItems = [
@@ -23,12 +22,6 @@ const navItems = [
     label: 'Invoice Generator',
     icon: Receipt,
     description: 'Generate & manage invoices',
-  },
-  {
-    to: '/dialer',
-    label: 'Sales Dialer',
-    icon: Phone,
-    description: 'Make voice calls via Twilio',
   },
 ]
 
@@ -95,10 +88,9 @@ export default function DashboardLayout() {
                 className={`
                   group flex items-center gap-3 px-3 py-3 rounded-xl
                   transition-all duration-200
-                  ${
-                    isActive
-                      ? 'bg-electric/10 text-electric border border-electric/20'
-                      : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'
+                  ${isActive
+                    ? 'bg-electric/10 text-electric border border-electric/20'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'
                   }
                 `}
               >
@@ -106,10 +98,9 @@ export default function DashboardLayout() {
                   className={`
                     w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0
                     transition-all duration-200
-                    ${
-                      isActive
-                        ? 'bg-electric/20 text-electric'
-                        : 'bg-white/5 text-gray-500 group-hover:bg-white/10 group-hover:text-gray-300'
+                    ${isActive
+                      ? 'bg-electric/20 text-electric'
+                      : 'bg-white/5 text-gray-500 group-hover:bg-white/10 group-hover:text-gray-300'
                     }
                   `}
                 >
