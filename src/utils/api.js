@@ -62,10 +62,10 @@ export function formatDate(date = new Date()) {
   })
 }
 
-export function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', {
+export function formatCurrency(amount, currencyCode = 'USD') {
+  return new Intl.NumberFormat(currencyCode === 'INR' ? 'en-IN' : 'en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency: currencyCode,
     minimumFractionDigits: 2,
   }).format(amount || 0)
 }

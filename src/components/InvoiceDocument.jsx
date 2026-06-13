@@ -27,17 +27,7 @@ export default function InvoiceDocument({ data }) {
 
   return (
     <div style={{ fontFamily: "'Inter', 'Segoe UI', sans-serif", color: '#1A1A1A', lineHeight: 1.7, fontSize: '13.5px' }}>
-      {/* Header (Negative margins to cancel DocumentPreview padding) */}
-      <div style={{ backgroundColor: '#3533CD', color: '#ffffff', padding: '32px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-20px -40px 40px -40px' }}>
-        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '32px', fontWeight: 800, letterSpacing: '-0.128em' }}>
-          webier<span style={{ color: '#F5C518' }}>.</span>
-        </div>
-        <div style={{ borderLeft: '2px solid #F5C518', paddingLeft: '16px', fontSize: '11px', lineHeight: 1.6, color: '#ffffff', opacity: 0.9, textAlign: 'left' }}>
-          <div>webierstudio.com</div>
-          <div>contact@webierstudio.com</div>
-          <div>+91 9257565709</div>
-        </div>
-      </div>
+
 
       {/* Title & Project */}
       <div style={{ marginBottom: '40px' }}>
@@ -95,8 +85,8 @@ export default function InvoiceDocument({ data }) {
             <tr key={i} style={{ backgroundColor: i % 2 === 0 ? '#ffffff' : '#F9F9FF' }}>
               <td style={tdStyle}>{item.description || '—'}</td>
               <td style={{ ...tdStyle, textAlign: 'center' }}>{item.quantity}</td>
-              <td style={{ ...tdStyle, textAlign: 'right' }}>{formatCurrency(item.unitPrice)}</td>
-              <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600, color: '#1A1A1A' }}>{formatCurrency(getLineTotal(item))}</td>
+              <td style={{ ...tdStyle, textAlign: 'right' }}>{formatCurrency(item.unitPrice, data.currency)}</td>
+              <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600, color: '#1A1A1A' }}>{formatCurrency(getLineTotal(item), data.currency)}</td>
             </tr>
           ))}
         </tbody>
@@ -107,50 +97,50 @@ export default function InvoiceDocument({ data }) {
         <div style={{ width: '320px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', fontSize: '13px' }}>
             <span style={{ color: '#6B7280', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>SUBTOTAL</span>
-            <span style={{ fontWeight: 600, color: '#1A1A1A' }}>{formatCurrency(subtotal)}</span>
+            <span style={{ fontWeight: 600, color: '#1A1A1A' }}>{formatCurrency(subtotal, data.currency)}</span>
           </div>
           {taxAmount > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', fontSize: '13px', borderTop: '1px solid #F3F4F6' }}>
               <span style={{ color: '#6B7280', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>TAX ({data.taxPercent}%)</span>
-              <span style={{ fontWeight: 600, color: '#1A1A1A' }}>{formatCurrency(taxAmount)}</span>
+              <span style={{ fontWeight: 600, color: '#1A1A1A' }}>{formatCurrency(taxAmount, data.currency)}</span>
             </div>
           )}
           {surchargeAmount > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', fontSize: '13px', borderTop: '1px solid #F3F4F6' }}>
               <span style={{ color: '#6B7280', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>{data.paymentMethod.toUpperCase()} SURCHARGE ({surchargePercent}%)</span>
-              <span style={{ fontWeight: 600, color: '#1A1A1A' }}>{formatCurrency(surchargeAmount)}</span>
+              <span style={{ fontWeight: 600, color: '#1A1A1A' }}>{formatCurrency(surchargeAmount, data.currency)}</span>
             </div>
           )}
           {data.paymentStage === 'Advance' ? (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', fontSize: '13px', borderTop: '1px solid #E5E7EB' }}>
                 <span style={{ color: '#1A1A1A', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>TOTAL PROJECT AMOUNT</span>
-                <span style={{ fontWeight: 800, color: '#1A1A1A' }}>{formatCurrency(totalAmount)}</span>
+                <span style={{ fontWeight: 800, color: '#1A1A1A' }}>{formatCurrency(totalAmount, data.currency)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: '#3533CD', color: '#ffffff', borderRadius: '6px', marginTop: '8px' }}>
                 <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>ADVANCE DUE ({advancePercent}%)</span>
-                <span style={{ color: '#F5C518', fontSize: '20px', fontWeight: 800 }}>{formatCurrency(advanceAmount)}</span>
+                <span style={{ color: '#F5C518', fontSize: '20px', fontWeight: 800 }}>{formatCurrency(advanceAmount, data.currency)}</span>
               </div>
             </>
           ) : data.paymentStage === 'Final' ? (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', fontSize: '13px', borderTop: '1px solid #E5E7EB' }}>
                 <span style={{ color: '#1A1A1A', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>TOTAL PROJECT AMOUNT</span>
-                <span style={{ fontWeight: 800, color: '#1A1A1A' }}>{formatCurrency(totalAmount)}</span>
+                <span style={{ fontWeight: 800, color: '#1A1A1A' }}>{formatCurrency(totalAmount, data.currency)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', fontSize: '13px', borderTop: '1px solid #F3F4F6' }}>
                 <span style={{ color: '#6B7280', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>LESS ADVANCE PAID ({advancePercent}%)</span>
-                <span style={{ fontWeight: 600, color: '#1A1A1A' }}>-{formatCurrency(advanceAmount)}</span>
+                <span style={{ fontWeight: 600, color: '#1A1A1A' }}>-{formatCurrency(advanceAmount, data.currency)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: '#3533CD', color: '#ffffff', borderRadius: '6px', marginTop: '8px' }}>
                 <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>BALANCE DUE</span>
-                <span style={{ color: '#F5C518', fontSize: '20px', fontWeight: 800 }}>{formatCurrency(balanceDue)}</span>
+                <span style={{ color: '#F5C518', fontSize: '20px', fontWeight: 800 }}>{formatCurrency(balanceDue, data.currency)}</span>
               </div>
             </>
           ) : (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: '#3533CD', color: '#ffffff', borderRadius: '6px', marginTop: '8px' }}>
               <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>TOTAL DUE</span>
-              <span style={{ color: '#F5C518', fontSize: '20px', fontWeight: 800 }}>{formatCurrency(totalAmount)}</span>
+              <span style={{ color: '#F5C518', fontSize: '20px', fontWeight: 800 }}>{formatCurrency(totalAmount, data.currency)}</span>
             </div>
           )}
         </div>

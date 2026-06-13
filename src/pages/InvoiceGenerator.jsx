@@ -26,6 +26,7 @@ export default function InvoiceGenerator() {
     paymentDetails: '',
     paymentLink: '',
     notes: 'Thank you for your business!',
+    currency: 'USD',
   })
   const [isGenerated, setIsGenerated] = useState(false)
 
@@ -98,15 +99,23 @@ export default function InvoiceGenerator() {
               </Field>
             </div>
 
-            <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label className="block text-xs font-medium text-gray-400">Due Date</label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={form.hasDueDate} onChange={(e) => updateField('hasDueDate', e.target.checked)} className="accent-electric" />
-                  <span className="text-[10px] text-gray-500">Enable</span>
-                </label>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="block text-xs font-medium text-gray-400">Due Date</label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={form.hasDueDate} onChange={(e) => updateField('hasDueDate', e.target.checked)} className="accent-electric" />
+                    <span className="text-[10px] text-gray-500">Enable</span>
+                  </label>
+                </div>
+                <input type="date" value={form.dueDate} disabled={!form.hasDueDate} onChange={(e) => updateField('dueDate', e.target.value)} className={`${inputClass} [color-scheme:dark] ${!form.hasDueDate ? 'opacity-50 cursor-not-allowed' : ''}`} />
               </div>
-              <input type="date" value={form.dueDate} disabled={!form.hasDueDate} onChange={(e) => updateField('dueDate', e.target.value)} className={`${inputClass} [color-scheme:dark] ${!form.hasDueDate ? 'opacity-50 cursor-not-allowed' : ''}`} />
+              <Field label="Currency">
+                <select value={form.currency} onChange={(e) => updateField('currency', e.target.value)} className={selectClass}>
+                  <option value="USD">USD ($)</option>
+                  <option value="INR">INR (₹)</option>
+                </select>
+              </Field>
             </div>
 
             <Field label="Client Name *">
@@ -153,14 +162,14 @@ export default function InvoiceGenerator() {
                           min="1" className="w-full px-2 py-1.5 bg-navy-800 border border-white/5 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-electric/40 transition-all" />
                       </div>
                       <div>
-                        <label className="block text-[10px] text-gray-500 mb-1">Unit Price ($)</label>
+                        <label className="block text-[10px] text-gray-500 mb-1">Unit Price ({form.currency})</label>
                         <input type="number" value={item.unitPrice} onChange={(e) => updateLineItem(index, 'unitPrice', e.target.value)}
                           placeholder="0" className="w-full px-2 py-1.5 bg-navy-800 border border-white/5 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-electric/40 transition-all" />
                       </div>
                       <div>
                         <label className="block text-[10px] text-gray-500 mb-1">Total</label>
                         <div className="px-2 py-1.5 bg-navy-800/50 border border-white/5 rounded-lg text-electric text-sm font-medium">
-                          {formatCurrency(getLineTotal(item))}
+                          {formatCurrency(getLineTotal(item), form.currency)}
                         </div>
                       </div>
                     </div>
@@ -195,50 +204,50 @@ export default function InvoiceGenerator() {
             <div className="bg-navy-900 rounded-xl px-3 py-3 border border-electric/20 space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-xs text-gray-400">Subtotal</span>
-                <span className="text-sm text-gray-300">{formatCurrency(subtotal)}</span>
+                <span className="text-sm text-gray-300">{formatCurrency(subtotal, form.currency)}</span>
               </div>
               {taxAmount > 0 && (
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-gray-400">Tax ({form.taxPercent}%)</span>
-                  <span className="text-sm text-gray-300">{formatCurrency(taxAmount)}</span>
+                  <span className="text-sm text-gray-300">{formatCurrency(taxAmount, form.currency)}</span>
                 </div>
               )}
               {surchargeAmount > 0 && (
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-gray-400">{form.paymentMethod} Surcharge ({surchargePercent}%)</span>
-                  <span className="text-sm text-gray-300">{formatCurrency(surchargeAmount)}</span>
+                  <span className="text-sm text-gray-300">{formatCurrency(surchargeAmount, form.currency)}</span>
                 </div>
               )}
               {form.paymentStage === 'Advance' ? (
                 <>
                   <div className="flex justify-between items-center pt-1 border-t border-white/5">
                     <span className="text-xs font-semibold text-gray-300">Total Project Amount</span>
-                    <span className="text-sm font-bold text-gray-200">{formatCurrency(totalAmount)}</span>
+                    <span className="text-sm font-bold text-gray-200">{formatCurrency(totalAmount, form.currency)}</span>
                   </div>
                   <div className="flex justify-between items-center pt-1 border-t border-white/5">
                     <span className="text-xs font-semibold text-white">Advance Due ({form.advancePercent}%)</span>
-                    <span className="text-base font-bold text-electric">{formatCurrency(advanceAmount)}</span>
+                    <span className="text-base font-bold text-electric">{formatCurrency(advanceAmount, form.currency)}</span>
                   </div>
                 </>
               ) : form.paymentStage === 'Final' ? (
                 <>
                   <div className="flex justify-between items-center pt-1 border-t border-white/5">
                     <span className="text-xs font-semibold text-gray-300">Total Project Amount</span>
-                    <span className="text-sm font-bold text-gray-200">{formatCurrency(totalAmount)}</span>
+                    <span className="text-sm font-bold text-gray-200">{formatCurrency(totalAmount, form.currency)}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-gray-400">Less Advance Paid ({form.advancePercent}%)</span>
-                    <span className="text-sm text-gray-300">-{formatCurrency(advanceAmount)}</span>
+                    <span className="text-sm text-gray-300">-{formatCurrency(advanceAmount, form.currency)}</span>
                   </div>
                   <div className="flex justify-between items-center pt-1 border-t border-white/5">
                     <span className="text-xs font-semibold text-white">Balance Due</span>
-                    <span className="text-base font-bold text-electric">{formatCurrency(balanceDue)}</span>
+                    <span className="text-base font-bold text-electric">{formatCurrency(balanceDue, form.currency)}</span>
                   </div>
                 </>
               ) : (
                 <div className="flex justify-between items-center pt-1 border-t border-white/5">
                   <span className="text-xs font-semibold text-white">Total Amount Due</span>
-                  <span className="text-base font-bold text-electric">{formatCurrency(totalAmount)}</span>
+                  <span className="text-base font-bold text-electric">{formatCurrency(totalAmount, form.currency)}</span>
                 </div>
               )}
             </div>
@@ -282,7 +291,6 @@ export default function InvoiceGenerator() {
         isGenerated={isGenerated}
         filename={filename}
         emptyMessage="Fill in the invoice details and click Generate to create a professional invoice."
-        hideLetterhead={true}
       >
         <InvoiceDocument data={form} />
       </DocumentPreview>

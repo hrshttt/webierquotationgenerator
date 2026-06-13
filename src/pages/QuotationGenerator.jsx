@@ -36,10 +36,12 @@ const initialForm = {
   pagesFeatures: '',
   techStack: '',
   totalCost: '',
-  advancePayment: '',
+  advancePercent: '',
+  monthlyRetainer: '',
   timeline: '',
   exclusions: '',
   specialNotes: '',
+  currency: 'USD',
 }
 
 export default function QuotationGenerator() {
@@ -48,7 +50,10 @@ export default function QuotationGenerator() {
   const [isGenerated, setIsGenerated] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  const pendingPayment = (parseFloat(form.totalCost) || 0) - (parseFloat(form.advancePayment) || 0)
+  const totalCostValue = parseFloat(form.totalCost) || 0
+  const advancePercentValue = parseFloat(form.advancePercent) || 0
+  const advanceAmountValue = totalCostValue * (advancePercentValue / 100)
+  const pendingPayment = totalCostValue - advanceAmountValue
 
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -59,7 +64,7 @@ export default function QuotationGenerator() {
 Client: ${form.clientName}, Company: ${form.companyName || 'N/A'}, Industry: ${form.industry || 'N/A'}
 Pages & Features: ${form.pagesFeatures}
 Tech Stack: ${form.techStack || 'Modern web technologies'}
-Budget: $${form.totalCost}`
+Budget: ${form.totalCost} ${form.currency}`
   }
 
   const handleGenerate = async () => {
@@ -140,11 +145,19 @@ Budget: $${form.totalCost}`
             </Field>
 
             {/* Project Type */}
-            <Field label="Project Type">
-              <select value={form.projectType} onChange={(e) => updateField('projectType', e.target.value)} className={selectClass}>
-                {PROJECT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Project Type">
+                <select value={form.projectType} onChange={(e) => updateField('projectType', e.target.value)} className={selectClass}>
+                  {PROJECT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </Field>
+              <Field label="Currency">
+                <select value={form.currency} onChange={(e) => updateField('currency', e.target.value)} className={selectClass}>
+                  <option value="USD">USD ($)</option>
+                  <option value="INR">INR (₹)</option>
+                </select>
+              </Field>
+            </div>
 
             {/* Pages & Features */}
             <Field label="Pages & Features *">
@@ -161,22 +174,31 @@ Budget: $${form.totalCost}`
 
             {/* Cost */}
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Total Cost (USD) *">
+              <Field label={`Total Cost (${form.currency}) *`}>
                 <input type="number" value={form.totalCost} onChange={(e) => updateField('totalCost', e.target.value)}
                   placeholder="5000" className={inputClass} />
               </Field>
-              <Field label="Advance (USD)">
-                <input type="number" value={form.advancePayment} onChange={(e) => updateField('advancePayment', e.target.value)}
-                  placeholder="2500" className={inputClass} />
+              <Field label="Advance (%)">
+                <input type="number" value={form.advancePercent} onChange={(e) => updateField('advancePercent', e.target.value)}
+                  placeholder="50" className={inputClass} />
               </Field>
             </div>
 
+            <Field label={`Monthly Retainer (${form.currency}) (Optional)`}>
+              <input type="number" value={form.monthlyRetainer} onChange={(e) => updateField('monthlyRetainer', e.target.value)}
+                placeholder="500" className={inputClass} />
+            </Field>
+
             {/* Pending */}
-            {(form.totalCost || form.advancePayment) && (
+            {(form.totalCost || form.advancePercent) && (
               <div className="bg-navy-900 rounded-xl px-3 py-2.5 border border-electric/20">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-xs text-gray-400">Advance Amount</span>
+                  <span className="text-sm font-semibold text-gray-300">{formatCurrency(advanceAmountValue, form.currency)}</span>
+                </div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-gray-400">Pending Payment</span>
-                  <span className="text-sm font-bold text-electric">{formatCurrency(pendingPayment)}</span>
+                  <span className="text-sm font-bold text-electric">{formatCurrency(pendingPayment, form.currency)}</span>
                 </div>
               </div>
             )}

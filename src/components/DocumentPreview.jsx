@@ -3,7 +3,6 @@ import { useLetterhead } from '../context/LetterheadContext'
 import { sanitizeFilename } from '../utils/pdf'
 import { Download, RefreshCw, Copy, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
-import html2pdf from 'html2pdf.js'
 
 export default function DocumentPreview({
   children,
@@ -17,35 +16,40 @@ export default function DocumentPreview({
   const { header, footer, error: letterheadError } = useLetterhead()
   const previewRef = useRef(null)
 
-  const handleExportPDF = async () => {
-    if (!previewRef.current) return
+  const handleExportPDF = () => {
+    if (!previewRef.current) return;
 
-    try {
-      toast.loading('Generating PDF...', { id: 'pdf-export' })
+    // Grab the exact HTML the browser is rendering
+    const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${sanitizeFilename(filename)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #ffffff; }
+  @media print {
+    @page { margin: 0; size: auto; }
+    body { margin: 0; }
+  }
+</style>
+</head>
+<body>
+${previewRef.current.innerHTML}
+</body>
+</html>`;
 
-      const opt = {
-        margin: [0, 0, 0, 0],
-        filename: `${sanitizeFilename(filename)}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          letterRendering: true,
-          logging: false,
-        },
-        jsPDF: {
-          unit: 'mm',
-          format: 'a4',
-          orientation: 'portrait',
-        },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-      }
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${sanitizeFilename(filename)}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
 
-      await html2pdf().set(opt).from(previewRef.current).save()
-      toast.success('PDF exported successfully!', { id: 'pdf-export' })
-    } catch (err) {
-      toast.error('Failed to export PDF: ' + err.message, { id: 'pdf-export' })
-    }
+    toast.success('HTML file downloaded! Open it in your browser and print to PDF.', { id: 'pdf-export' });
   }
 
   const handleCopyToClipboard = async () => {
@@ -89,6 +93,42 @@ export default function DocumentPreview({
 
   return (
     <div className="flex-1 flex flex-col min-w-0">
+      {/* Print-only styles: hide everything except #document-preview */}
+      <style>{`
+        @media print {
+          /* Hide EVERYTHING on the page */
+          body * {
+            visibility: hidden !important;
+          }
+          /* Then show ONLY the document preview and its children */
+          #document-preview,
+          #document-preview * {
+            visibility: visible !important;
+          }
+          /* Position it at the top-left of the page */
+          #document-preview {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+          }
+          /* Remove all page margins */
+          @page {
+            margin: 0;
+            size: auto;
+          }
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+        }
+      `}</style>
+
       {/* Toolbar */}
       <div className="flex items-center gap-2 mb-4 flex-wrap">
         <h3 className="text-sm font-semibold text-gray-300 mr-auto">Document Preview</h3>
@@ -137,14 +177,16 @@ export default function DocumentPreview({
           }}
         >
           {/* Letterhead Header */}
-          {!hideLetterhead && header && (
-            <div style={{ width: '100%', padding: '24px 40px 0 40px' }}>
-              <img
-                src={header}
-                alt="Webier Studio Letterhead"
-                style={{ width: '100%', display: 'block' }}
-                crossOrigin="anonymous"
-              />
+          {!hideLetterhead && (
+            <div style={{ backgroundColor: '#3533CD', color: '#ffffff', padding: '32px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '32px', fontWeight: 800, letterSpacing: '-0.128em' }}>
+                webier<span style={{ color: '#F5C518' }}>.</span>
+              </div>
+              <div style={{ borderLeft: '2px solid #F5C518', paddingLeft: '16px', fontSize: '11px', lineHeight: 1.6, color: '#ffffff', opacity: 0.9, textAlign: 'left' }}>
+                <div>webierstudio.com</div>
+                <div>contact@webierstudio.com</div>
+                <div>+91 9257565709</div>
+              </div>
             </div>
           )}
 
